@@ -2,15 +2,15 @@
 import React, { useState, useEffect } from "react"
 import { ethers } from "ethers"
 import alchemylogo from "./alchemylogo.svg"
-import abi from "./AlchemyVitto.json"
+import abi from "./AlchemyRahat.json"
 import "./App.css"
 
 const App = () => {
   const [hasMetamask, setHasMetamask] = useState(false)
   const [isConnected, setIsConnected] = useState(false)
   const [myAddr, setMyAddr] = useState("")
-  const [tokenURI, setTokenURI] = useState("")
-  const contractAddress = "0x309c5b7c9bA8f28F0Aa4CBC7928AB315783B6daa"
+  const [myTokenID, setMyTokenID] = useState(0)
+  const contractAddress = "0xD36738601a475c912273B52B429348b488b90989"
   const contractABI = abi.abi
 
   useEffect(() => {
@@ -33,13 +33,29 @@ const App = () => {
     }
   }
 
-  const mint = async () => {
+  const mintNFT = async () => {
     if (typeof window.ethereum !== "undefined") {
       try {
         const provider = new ethers.providers.Web3Provider(window.ethereum)
         const signer = provider.getSigner()
         const contractInstance = new ethers.Contract(contractAddress, contractABI, signer)
-        const tx = await contractInstance.safeMint(myAddr, tokenURI)
+        const tx = await contractInstance.mint()
+        await tx.wait()
+      } catch (err) {
+        console.log(err)
+      }
+    } else {
+      console.log("Please install MetaMask")
+    }
+  }
+
+  const trainWarrior = async () => {
+    if (typeof window.ethereum !== "undefined") {
+      try {
+        const provider = new ethers.providers.Web3Provider(window.ethereum)
+        const signer = provider.getSigner()
+        const contractInstance = new ethers.Contract(contractAddress, contractABI, signer)
+        const tx = await contractInstance.train(myTokenID)
         await tx.wait()
       } catch (err) {
         console.log(err)
@@ -57,13 +73,16 @@ const App = () => {
           {hasMetamask ? (isConnected ? "Connected " + String(myAddr).substring(0, 6) + "..." + String(myAddr).substring(38) : "Connect MetaMask") : "Please install MetaMask"}
         </button>
 
-        <h2 style={{ paddingTop: "18px" }}>TokenURI :</h2>
+        <h2 style={{ paddingTop: "18px" }}>Token ID :</h2>
         <div>
-          <input type="text" placeholder="paste the TokenURI here" onChange={(e) => setTokenURI(e.target.value)} value={tokenURI} />
+          <input type="number" placeholder="paste your Token ID here" onChange={(e) => setMyTokenID(e.target.value)} value={myTokenID} />
         </div>
 
-        <button id="publish" onClick={mint}>
+        <button id="publish" onClick={mintNFT}>
           Mint
+        </button>
+        <button id="publish" onClick={trainWarrior}>
+          Train
         </button>
       </div>
     </div>
